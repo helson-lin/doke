@@ -45,8 +45,8 @@ jobs:
       - name: Update Homebrew Formula
         run: |
           # 克隆 Homebrew Tap 仓库
-          git clone https://github.com/helson-lin/doke-tap.git
-          cd doke-tap
+          git clone https://github.com/helson-lin/homebrew-tap.git
+          cd homebrew-tap
 
           # 计算 SHA256 校验和
           SHA256=$(shasum -a 256 ../dist/doke_${GITHUB_REF#refs/tags/}_darwin_amd64.tar.gz | awk '{print $1}')
@@ -61,4 +61,4 @@ jobs:
           git config --global user.email "helsonlin@163.com"
           git add doke.rb
           git commit -m "Update doke to ${GITHUB_REF#refs/tags/}"
-          git push https://${{ secrets.TOKEN }}@github.com/helson-lin/doke-tap.git main
+          git push https://${{ secrets.TOKEN }}@github.com/helson-lin/homebrew-tap.git main

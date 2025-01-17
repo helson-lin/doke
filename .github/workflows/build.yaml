@@ -49,10 +49,10 @@ jobs:
           cd homebrew-tap
 
           # 计算 SHA256 校验和
-          SHA256=$(shasum -a 256 ../dist/doke_${GITHUB_REF#refs/tags/}-darwin-amd64.tar.gz | awk '{print $1}')
+          SHA256=$(shasum -a 256 ../dist/doke-${GITHUB_REF#refs/tags/}-darwin-amd64.tar.gz | awk '{print $1}')
 
           # 更新 Formula 文件
-          sed -i "s|url \".*\"|url \"https://github.com/helson-lin/doke/releases/download/${GITHUB_REF#refs/tags/}/doke_${GITHUB_REF#refs/tags/}-darwin-amd64.tar.gz\"|" doke.rb
+          sed -i "s|url \".*\"|url \"https://github.com/helson-lin/doke/releases/download/${GITHUB_REF#refs/tags/}/doke-${GITHUB_REF#refs/tags/}-darwin-amd64.tar.gz\"|" doke.rb
           sed -i "s|sha256 \".*\"|sha256 \"$SHA256\"|" doke.rb
           sed -i "s|version \".*\"|version \"${GITHUB_REF#refs/tags/}\"|" doke.rb
 

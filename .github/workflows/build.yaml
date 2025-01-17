@@ -26,10 +26,13 @@ jobs:
       # 3. 下载依赖
       # - name: Download dependencies
         # run: go mod download
+      - name: Extract tag name
+        id: tag_name
+        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       # 5. 构建项目
       - name: Build
-        run: bash build.sh
+        run: bash build.sh ${{ env.TAG }}
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -58,4 +61,4 @@ jobs:
           git config --global user.email "helsonlin@163.com"
           git add doke.rb
           git commit -m "Update doke to ${GITHUB_REF#refs/tags/}"
-          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/helson-lin/doke-tap.git main
+          git push https://${{ secrets.TOKEN }}@github.com/helson-lin/doke-tap.git main

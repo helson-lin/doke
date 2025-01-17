@@ -4,11 +4,10 @@
 APP_NAME="doke"
 
 # 定义应用程序的版本号
-VERSION="0.0.1"  # 你可以根据需要修改版本号
+VERSION=$1  # 你可以根据需要修改版本号
 
 # 定义要构建的平台
-# PLATFORMS=("darwin/amd64" "darwin/arm64" "linux/amd64" "linux/arm64" "windows/amd64")
-PLATFORMS=("linux/amd64")
+PLATFORMS=("darwin/amd64" "darwin/arm64" "linux/amd64" "linux/arm64" "windows/amd64")
 
 # 清除之前的构建并创建新的 release 目录
 rm -rf release

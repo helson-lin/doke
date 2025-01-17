@@ -47,7 +47,6 @@ jobs:
           # 克隆 Homebrew Tap 仓库
           git clone https://github.com/helson-lin/homebrew-tap.git
           cd homebrew-tap
-          ll ../release
           SHA256_ARM=$(shasum -a 256 ../release/doke-${GITHUB_REF#refs/tags/}-darwin-arm64.tar.gz | awk '{print \$1}')
           SHA256_INTEL=$(shasum -a 256 ../release/doke-${GITHUB_REF#refs/tags/}-darwin-amd64.tar.gz | awk '{print \$1}')
 

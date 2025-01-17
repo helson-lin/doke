@@ -19,7 +19,7 @@ export GIN_MODE=release
 for PLATFORM in "${PLATFORMS[@]}"; do
     GOOS=${PLATFORM%/*}
     GOARCH=${PLATFORM#*/}
-    OUTPUT_NAME=$APP_NAME-$VERSION-$GOOS-$GOARCH  # 在文件名中加入版本号
+    OUTPUT_NAME=$APP_NAME_$VERSION_$GOOS_$GOARCH  # 在文件名中加入版本号
     if [ $GOOS = "windows" ]; then
         OUTPUT_NAME+='.exe'
     fi

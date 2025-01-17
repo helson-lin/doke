@@ -3,11 +3,8 @@ name: Go Build
 # 触发条件：当有代码推送到 main 分支或发起 pull request 时触发
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    tags:
+      - 'v*.*.*'
 
 # 定义任务
 jobs:

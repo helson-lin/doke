@@ -30,4 +30,15 @@ for PLATFORM in "${PLATFORMS[@]}"; do
         echo 'An error has occurred! Aborting the script execution...'
         exit 1
     fi
+
+    # 将构建的二进制文件打包为 tar.gz
+    echo "Compressing $OUTPUT_NAME..."
+    tar -czvf release/$OUTPUT_NAME.tar.gz -C release $OUTPUT_NAME
+    if [ $? -ne 0 ]; then
+        echo 'An error occurred while compressing! Aborting the script execution...'
+        exit 1
+    fi
+
+    # 删除原始的二进制文件（可选）
+    rm release/$OUTPUT_NAME
 done

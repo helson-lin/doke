@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/helson-lin/doke/i18n"
 	"github.com/spf13/cobra"
 )
 
@@ -16,74 +17,74 @@ var registryMirrors = []string{"https://docker.1ms.run", "https://docker.1panel.
 func linuxDockerCheck() (bool, string) {
 	_, err := exec.Command("docker", "version").Output()
 	if err != nil {
-		rootCmd.PrintErrf("Failed to check docker version: %v", err)
-		return false, "Failed to check docker version"
+		rootCmd.PrintErrf(i18n.T("error.docker_version_check", err))
+		return false, i18n.T("error.docker_version_check_failed")
 	}
 	// 2. 检查docker是否正在运行
 	dockerStatus, err := exec.Command("systemctl", "is-active", "docker").Output()
 	if err != nil {
-		rootCmd.PrintErrf("Failed to check docker status: %v", err)
-		return false, "Failed to check docker status"
+		rootCmd.PrintErrf(i18n.T("error.docker_status_check", err))
+		return false, i18n.T("error.docker_status_check_failed")
 	}
 
 	if string(dockerStatus) == "active" {
-		rootCmd.Println("Docker is running")
-		return true, "Running"
+		rootCmd.Println(i18n.T("proxy.docker_running"))
+		return true, i18n.T("proxy.status_running")
 	} else {
-		rootCmd.Println("Docker is not running")
-		return true, "Stopped"
+		rootCmd.Println(i18n.T("proxy.docker_not_running"))
+		return true, i18n.T("proxy.status_stopped")
 	}
 }
 
 func linuxProxy() {
-	fmt.Println("🚀 开始配置 Linux Docker 镜像源...")
+	fmt.Println(i18n.T("proxy.linux_start_config"))
 
 	// 1. 读取/etc/docker/daemon.json
-	fmt.Println("📁 读取 Docker 配置文件...")
+	fmt.Println(i18n.T("proxy.reading_config"))
 	daemonJson, err := os.ReadFile("/etc/docker/daemon.json")
 	if err != nil {
-		fmt.Println("❌ 读取 /etc/docker/daemon.json 失败")
+		fmt.Println(i18n.T("error.read_daemon_json"))
 		return
 	}
-	fmt.Println("✅ 成功读取 Docker 配置文件")
+	fmt.Println(i18n.T("proxy.read_config_success"))
 
 	// 2. 解析daemon.json
-	fmt.Println("🔍 解析配置文件...")
+	fmt.Println(i18n.T("proxy.parsing_config"))
 	var daemonConfig map[string]interface{}
 	err = json.Unmarshal(daemonJson, &daemonConfig)
 	if err != nil {
-		fmt.Println("❌ 解析 /etc/docker/daemon.json 失败")
+		fmt.Println(i18n.T("error.parse_daemon_json"))
 		return
 	}
-	fmt.Println("✅ 成功解析配置文件")
+	fmt.Println(i18n.T("proxy.parse_config_success"))
 
 	// 3. 检查是否存在registry-mirrors配置
-	fmt.Println("🔍 检查现有镜像源配置...")
+	fmt.Println(i18n.T("proxy.checking_mirrors"))
 	mirrors, ok := daemonConfig["registry-mirrors"]
 	if !ok {
-		fmt.Println("📋 未发现现有镜像源配置，将创建新的配置")
+		fmt.Println(i18n.T("proxy.no_existing_mirrors"))
 		daemonConfig["registry-mirrors"] = registryMirrors
 	} else {
 		// 4. 检查mirrors是否为空
 		if mirrors == nil {
-			fmt.Println("📋 现有镜像源配置为空，将创建新的配置")
+			fmt.Println(i18n.T("proxy.empty_mirrors"))
 			daemonConfig["registry-mirrors"] = registryMirrors
 		} else {
 			// 5. 检查mirrors是否为数组
 			mirrorsArray, ok := mirrors.([]interface{})
 			if !ok {
-				fmt.Println("⚠️  现有镜像源格式不正确，将创建新的配置")
+				fmt.Println(i18n.T("proxy.invalid_mirrors_format"))
 				daemonConfig["registry-mirrors"] = registryMirrors
 			} else {
 				// 6. 检查mirrorsArray是否为空
 				if len(mirrorsArray) == 0 {
-					fmt.Println("📋 现有镜像源列表为空，将创建新的配置")
+					fmt.Println(i18n.T("proxy.empty_mirrors_list"))
 					daemonConfig["registry-mirrors"] = registryMirrors
 				} else {
-					fmt.Printf("📋 发现现有镜像源: %v\n", mirrorsArray)
+					fmt.Printf(i18n.T("proxy.existing_mirrors", mirrorsArray))
 
 					// 7. 追加新的镜像源
-					fmt.Printf("🔄 正在添加镜像源: %v\n", registryMirrors)
+					fmt.Printf(i18n.T("proxy.adding_mirrors", registryMirrors))
 					for _, mirror := range registryMirrors {
 						// 检查是否已存在
 						exists := false
@@ -95,105 +96,105 @@ func linuxProxy() {
 						}
 						if !exists {
 							mirrorsArray = append(mirrorsArray, mirror)
-							fmt.Printf("✅ 添加镜像源: %s\n", mirror)
+							fmt.Printf(i18n.T("proxy.mirror_added", mirror))
 						} else {
-							fmt.Printf("⏭️  镜像源已存在，跳过: %s\n", mirror)
+							fmt.Printf(i18n.T("proxy.mirror_exists", mirror))
 						}
 					}
 					daemonConfig["registry-mirrors"] = mirrorsArray
-					fmt.Printf("📝 最终镜像源列表: %v\n", mirrorsArray)
+					fmt.Printf(i18n.T("proxy.final_mirrors", mirrorsArray))
 				}
 			}
 		}
 	}
 
 	// 8. 将daemon.json写回文件
-	fmt.Println("💾 保存配置文件...")
+	fmt.Println(i18n.T("proxy.saving_config"))
 	daemonJson, err = json.MarshalIndent(daemonConfig, "", "  ")
 	if err != nil {
-		fmt.Println("❌ 序列化配置文件失败")
+		fmt.Println(i18n.T("error.serialize_config"))
 		return
 	}
-	fmt.Println("✅ 成功序列化配置文件")
+	fmt.Println(i18n.T("proxy.serialize_success"))
 
 	// 9. 将daemon.json写回文件
 	err = os.WriteFile("/etc/docker/daemon.json", daemonJson, 0644)
 	if err != nil {
-		fmt.Println("❌ 写入 /etc/docker/daemon.json 失败")
+		fmt.Println(i18n.T("error.write_daemon_json"))
 		return
 	}
-	fmt.Println("✅ 成功写入配置文件")
+	fmt.Println(i18n.T("proxy.write_config_success"))
 
 	// 10. 执行 systemctl daemon-reload
-	fmt.Println("🔄 重新加载系统服务...")
+	fmt.Println(i18n.T("proxy.reloading_daemon"))
 	err = exec.Command("systemctl", "daemon-reload").Run()
 	if err != nil {
-		fmt.Println("❌ 执行 systemctl daemon-reload 失败")
+		fmt.Println(i18n.T("error.daemon_reload"))
 		return
 	}
-	fmt.Println("✅ 成功重新加载系统服务")
+	fmt.Println(i18n.T("proxy.daemon_reload_success"))
 
 	// 11. 执行 systemctl restart docker
-	fmt.Println("🔄 重启 Docker 服务...")
+	fmt.Println(i18n.T("proxy.restarting_docker"))
 	err = exec.Command("systemctl", "restart", "docker").Run()
 	if err != nil {
-		fmt.Println("❌ 执行 systemctl restart docker 失败")
+		fmt.Println(i18n.T("error.restart_docker"))
 		return
 	}
-	fmt.Println("✅ 成功重启 Docker 服务")
-	fmt.Println("🎉 Linux Docker 镜像源配置完成！")
+	fmt.Println(i18n.T("proxy.restart_docker_success"))
+	fmt.Println(i18n.T("proxy.linux_config_complete"))
 }
 
 func macDockerCheck() (bool, string) {
 	// 1. 检查是否安装了orbStack
 	_, err := exec.Command("orbctl", "version").Output()
 	if err != nil {
-		rootCmd.PrintErrln("Failed to check orbStack version")
-		return false, "Failed to check orbStack version"
+		rootCmd.PrintErrln(i18n.T("error.orbstack_version_check"))
+		return false, i18n.T("error.orbstack_version_check_failed")
 	}
 	// 2. 检查orbStack状态
 	orbStack, err := exec.Command("orbctl", "status").Output()
 	if err != nil {
-		return true, "Stopped"
+		return true, i18n.T("proxy.status_stopped")
 	}
 	if string(orbStack) == "Running" {
-		rootCmd.Println("orbStack is running")
+		rootCmd.Println(i18n.T("proxy.orbstack_running"))
 		return true, string(orbStack)
 	} else if string(orbStack) == "Stopped" {
-		rootCmd.Println("orbStack is stopped")
+		rootCmd.Println(i18n.T("proxy.orbstack_stopped"))
 		return true, string(orbStack)
 	}
 	return true, string(orbStack)
 }
 
 func updateObrStack() {
-	fmt.Println("🚀 开始配置 Docker 镜像源...")
+	fmt.Println(i18n.T("proxy.start_config"))
 
 	// 1. 获取用户主目录并构建正确的路径
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Println("❌ 获取用户主目录失败:", err)
+		fmt.Println(i18n.T("error.get_home_dir", err))
 		return
 	}
 	dockerConfigPath := filepath.Join(homeDir, ".orbstack", "config", "docker.json")
-	fmt.Printf("📁 配置文件路径: %s\n", dockerConfigPath)
+	fmt.Printf(i18n.T("proxy.config_path", dockerConfigPath))
 
 	// 2. 读取~/.orbstack/config/docker.json
 	dockerJson, err := os.ReadFile(dockerConfigPath)
 	if err != nil {
-		fmt.Printf("❌ 读取配置文件失败: %v\n", err)
+		fmt.Printf(i18n.T("error.read_config_file", err))
 		return
 	}
-	fmt.Println("✅ 成功读取配置文件")
+	fmt.Println(i18n.T("proxy.read_config_success"))
 
 	// 3. 解析现有的配置
 	var config map[string]interface{}
 	err = json.Unmarshal(dockerJson, &config)
 	if err != nil {
-		fmt.Printf("❌ 解析配置文件失败: %v\n", err)
+		fmt.Printf(i18n.T("error.parse_config_file", err))
 		return
 	}
-	fmt.Println("✅ 成功解析配置文件")
+	fmt.Println(i18n.T("proxy.parse_config_success"))
 
 	// 4. 获取现有的 registry-mirrors 配置
 	existingMirrors, ok := config["registry-mirrors"]
@@ -203,18 +204,18 @@ func updateObrStack() {
 		// 如果存在现有的镜像配置，转换为数组
 		if mirrors, ok := existingMirrors.([]interface{}); ok {
 			mirrorsArray = mirrors
-			fmt.Printf("📋 发现现有镜像源: %v\n", mirrorsArray)
+			fmt.Printf(i18n.T("proxy.existing_mirrors", mirrorsArray))
 		} else {
-			fmt.Println("⚠️  现有镜像源格式不正确，将创建新的配置")
+			fmt.Println(i18n.T("proxy.invalid_mirrors_format"))
 			mirrorsArray = []interface{}{}
 		}
 	} else {
-		fmt.Println("📋 未发现现有镜像源配置，将创建新的配置")
+		fmt.Println(i18n.T("proxy.no_existing_mirrors"))
 		mirrorsArray = []interface{}{}
 	}
 
 	// 5. 追加新的镜像源
-	fmt.Printf("🔄 正在添加镜像源: %v\n", registryMirrors)
+	fmt.Printf(i18n.T("proxy.adding_mirrors", registryMirrors))
 	for _, mirror := range registryMirrors {
 		// 检查是否已存在
 		exists := false
@@ -226,46 +227,47 @@ func updateObrStack() {
 		}
 		if !exists {
 			mirrorsArray = append(mirrorsArray, mirror)
-			fmt.Printf("✅ 添加镜像源: %s\n", mirror)
+			fmt.Printf(i18n.T("proxy.mirror_added", mirror))
 		} else {
-			fmt.Printf("⏭️  镜像源已存在，跳过: %s\n", mirror)
+			fmt.Printf(i18n.T("proxy.mirror_exists", mirror))
 		}
 	}
 
 	// 6. 更新配置
 	config["registry-mirrors"] = mirrorsArray
-	fmt.Printf("📝 最终镜像源列表: %v\n", mirrorsArray)
+	fmt.Printf(i18n.T("proxy.final_mirrors", mirrorsArray))
 
 	// 7. 将修改后的配置转回JSON
 	updatedJson, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
-		fmt.Println("❌ 序列化配置失败:", err)
+		fmt.Println(i18n.T("error.serialize_config", err))
 		return
 	}
-	fmt.Println("✅ 成功序列化配置")
+	fmt.Println(i18n.T("proxy.serialize_success"))
 
 	// 8. 写回~/.orbstack/config/docker.json
 	err = os.WriteFile(dockerConfigPath, updatedJson, 0644)
 	if err != nil {
-		fmt.Printf("❌ 写入配置文件失败: %v\n", err)
+		fmt.Printf(i18n.T("error.write_config_file", err))
 		return
 	}
-	fmt.Println("✅ 成功写入配置文件")
+	fmt.Println(i18n.T("proxy.write_config_success"))
 
 	// 9. 重启orbStack
-	fmt.Println("🔄 正在重启 Docker 服务...")
+	fmt.Println(i18n.T("proxy.restarting_docker"))
 	err = exec.Command("orbctl", "restart", "docker").Run()
 	if err != nil {
-		fmt.Println("❌ 重启 Docker 服务失败:", err)
+		fmt.Println(i18n.T("error.restart_docker", err))
 		return
 	}
-	fmt.Println("✅ 成功重启 Docker 服务")
-	fmt.Println("🎉 Docker 镜像源配置完成！")
+	fmt.Println(i18n.T("proxy.restart_docker_success"))
+	fmt.Println(i18n.T("proxy.config_complete"))
 }
 
 var proxyCmd = &cobra.Command{
 	Use:   "proxy",
-	Short: "Automatically set Docker image source address",
+	Short: i18n.T("proxy.short"),
+	Long:  i18n.T("proxy.long"),
 	Run: func(cmd *cobra.Command, args []string) {
 		// 1. 判断操作系统
 		os := runtime.GOOS
@@ -274,14 +276,14 @@ var proxyCmd = &cobra.Command{
 			if isInstall {
 				linuxProxy()
 			} else {
-				rootCmd.PrintErrln("Make sure Docker is installed")
+				rootCmd.PrintErrln(i18n.T("error.docker_not_installed"))
 			}
 		} else if os == "darwin" {
 			isInstall, _ := macDockerCheck()
 			if isInstall {
 				updateObrStack()
 			} else {
-				rootCmd.PrintErrln("Make sure orbStack is installed")
+				rootCmd.PrintErrln(i18n.T("error.orbstack_not_installed"))
 			}
 		}
 	},

@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-units"
+	"github.com/helson-lin/doke/i18n"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -51,8 +52,9 @@ func init() {
 
 var dockerCommand = &cobra.Command{
 	Use:     "command [container id]",
-	Aliases: []string{"c"}, // 添加别名 v
-	Short:   "Convert Docker container to docker run command",
+	Aliases: []string{"c"}, // 添加别名 c
+	Short:   i18n.T("command.short"),
+	Long:    i18n.T("command.long"),
 	Args:    cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// 从 args 中获取 containerId
@@ -86,31 +88,32 @@ var dockerCommand = &cobra.Command{
 func writeDockerComposeYaml(containerName string, yamlData string) error {
 	currentDir, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("获取当前目录失败: %v", err)
+		return fmt.Errorf(i18n.T("error.get_current_dir", err))
 	}
 
 	fileName := fmt.Sprintf("%s.yml", containerName)
 	filePath := filepath.Join(currentDir, fileName)
 
-	fmt.Printf("是否将 Docker Compose 配置写入文件 %s？(y/n): ", filePath)
+	fmt.Printf(i18n.T("command.compose_confirm", filePath))
 
 	var confirm string            // Declare confirm outside the if block
 	_, err = fmt.Scanln(&confirm) // Use _ to ignore the return value of a
 	if err != nil {
-		return fmt.Errorf("读取用户输入失败: %v", err)
+		return fmt.Errorf(i18n.T("error.read_user_input", err))
 	}
 
 	if strings.ToLower(confirm) != "y" {
-		fmt.Println("用户取消操作。")
+		fmt.Println(i18n.T("command.compose_cancelled"))
 		return nil
 	}
 
 	err = os.WriteFile(filePath, []byte(yamlData), 0644)
 	if err != nil {
-		return fmt.Errorf("写入文件失败: %v", err)
+		return fmt.Errorf(i18n.T("error.write_file", err))
 	}
 
-	fmt.Printf("Docker Compose 配置已成功写入文件: %s\n", fileName)
+	fmt.Printf(i18n.T("command.compose_written", fileName))
+	fmt.Println()
 	return nil
 }
 

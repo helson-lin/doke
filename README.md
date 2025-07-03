@@ -5,6 +5,11 @@
 </p>
 
 <p align="center">
+  <a href="README_EN.md">English</a> | 中文
+</p>
+
+
+<p align="center">
   <a href="#功能特性">功能特性</a> •
   <a href="#安装">安装</a> •
   <a href="#使用方法">使用方法</a> •
@@ -22,6 +27,8 @@
 - **🔄 版本管理**: 支持版本查看和更新
 - **💻 跨平台支持**: 支持 Linux 和 macOS 系统
 - **⚡ 快速高效**: 轻量级命令行工具，执行速度快
+
+[![asciicast](https://asciinema.org/a/6N8kSJONyoUnO2R4Sn6gUeQG2.svg)](https://asciinema.org/a/6N8kSJONyoUnO2R4Sn6gUeQG2)
 
 ## 📦 安装
 

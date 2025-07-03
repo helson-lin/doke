@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
-	"log"
 	"strings"
-	"gopkg.in/yaml.v3"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-units"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var containerId string
@@ -38,14 +39,13 @@ type HealthCheck struct {
 }
 
 type DockerCompose struct {
-	Version  string             `yaml:"version"`
-	Services map[string]Service `yaml:"services"`
+	Version  string              `yaml:"version"`
+	Services map[string]Service  `yaml:"services"`
 	Networks map[string]struct{} `yaml:"networks,omitempty"`
 }
 
-
 func init() {
-	dockerCommand.PersistentFlags().BoolVarP(&isCompose, "json", "j", false, "is export docker compose yaml file")
+	dockerCommand.PersistentFlags().BoolVarP(&isCompose, "json", "j", false, "export docker compose file")
 	rootCmd.AddCommand(dockerCommand)
 }
 
@@ -63,7 +63,6 @@ var dockerCommand = &cobra.Command{
 			log.Fatalf("Error: %v", err)
 		}
 		if isCompose {
-			fmt.Println("ok")
 			yamlData, err := getDockerComposeYaml(config)
 			if err != nil {
 				log.Fatalf("Error: %v", err)
@@ -90,12 +89,12 @@ func writeDockerComposeYaml(containerName string, yamlData string) error {
 		return fmt.Errorf("获取当前目录失败: %v", err)
 	}
 
-	fileName := fmt.Sprintf("%s.yaml", containerName)
+	fileName := fmt.Sprintf("%s.yml", containerName)
 	filePath := filepath.Join(currentDir, fileName)
 
 	fmt.Printf("是否将 Docker Compose 配置写入文件 %s？(y/n): ", filePath)
 
-	var confirm string // Declare confirm outside the if block
+	var confirm string            // Declare confirm outside the if block
 	_, err = fmt.Scanln(&confirm) // Use _ to ignore the return value of a
 	if err != nil {
 		return fmt.Errorf("读取用户输入失败: %v", err)
@@ -123,9 +122,9 @@ func getDockerComposeYaml(config *types.ContainerJSON) (string, error) {
 
 	// 构建 Service
 	service := Service{
-		Image:       container.Image,
+		Image:         container.Image,
 		ContainerName: strings.TrimPrefix(config.Name, "/"), // 去掉容器名前缀的 "/"
-		Command:     strings.Join(container.Cmd, " "),
+		Command:       strings.Join(container.Cmd, " "),
 	}
 
 	// 解析端口映射
@@ -229,7 +228,20 @@ func generateRunCommand(config *types.ContainerJSON) string {
 		cmd.WriteString(fmt.Sprintf(" -v %s:%s", mount.Source, mount.Destination))
 	}
 
-	// 绑定 device 映射
+	// add env vars
+	for _, env := range config.Config.Env {
+		// 默认的环境变量直接抛弃
+		if !strings.HasPrefix(env, "PATH") {
+			// 判断 env 是否有值
+			envInfo := strings.Split(env, "=")
+			// 如果 env 变量只有 key 没有 value，那么直接抛弃
+			if envInfo[0] == "" && envInfo[1] != "" {
+				cmd.WriteString(fmt.Sprintf(" -e %s", env))
+			}
+		}
+	}
+
+	// add device
 	for _, device := range config.HostConfig.Devices {
 		cmd.WriteString(fmt.Sprintf("--device %s:%s", device.PathOnHost, device.PathInContainer))
 	}

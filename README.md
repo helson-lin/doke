@@ -25,7 +25,7 @@
 
 ## 📦 安装
 
-### 使用 Homebrew 安装（暂不可用）
+### 使用 Homebrew 安装
 
 ```bash
 brew install helson-lin/tap/doke

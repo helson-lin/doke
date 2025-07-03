@@ -48,19 +48,25 @@ jobs:
           git clone https://github.com/helson-lin/homebrew-tap.git
           cd homebrew-tap
           ls -l ../release
+
+          # 计算SHA256值
           SHA256_ARM=$(shasum -a 256 ../release/doke-${GITHUB_REF#refs/tags/}-darwin-arm64.tar.gz | awk '{print $1}')
           SHA256_INTEL=$(shasum -a 256 ../release/doke-${GITHUB_REF#refs/tags/}-darwin-amd64.tar.gz | awk '{print $1}')
           echo $SHA256_ARM
           echo $SHA256_INTEL
-          # 更新 Formula 文件
-          sed -i "s|url \".*\"|url \"https://github.com/helson-lin/doke/releases/download/${GITHUB_REF#refs/tags/}/doke-${GITHUB_REF#refs/tags/}-darwin-arm64.tar.gz\"|" doke.rb
-          sed -i "s|sha256 \".*\"|sha256 \"$SHA256_ARM\"|" doke.rb  # 更新 ARM 的 SHA256
 
-          # 更新 Intel 的 URL 和 SHA256
-          sed -i "s|url \".*amd64.tar.gz\"|url \"https://github.com/helson-lin/doke/releases/download/${GITHUB_REF#refs/tags/}/doke-${GITHUB_REF#refs/tags/}-darwin-amd64.tar.gz\"|" doke.rb
-          sed -i "s|sha256 \".*\"|sha256 \"$SHA256_INTEL\"|" doke.rb  # 更新 Intel 的 SHA256
-
+          # 更新版本号
           sed -i "s|version \".*\"|version \"${GITHUB_REF#refs/tags/}\"|" doke.rb
+
+          # 针对ARM架构更新
+          # 假设ARM配置在文件的前半部分
+          sed -i "s|url \".*-darwin-arm64.tar.gz\"|url \"https://github.com/helson-lin/doke/releases/download/${GITHUB_REF#refs/tags/}/doke-${GITHUB_REF#refs/tags/}-darwin-arm64.tar.gz\"|" doke.rb
+          sed -i "0,/sha256 \".*\"/s//sha256 \"$SHA256_ARM\"/" doke.rb
+
+          # 针对Intel架构更新
+          # 假设Intel配置在文件的后半部分
+          sed -i "s|url \".*-darwin-amd64.tar.gz\"|url \"https://github.com/helson-lin/doke/releases/download/${GITHUB_REF#refs/tags/}/doke-${GITHUB_REF#refs/tags/}-darwin-amd64.tar.gz\"|" doke.rb
+          sed -i "0,/sha256 \".*\"/! s/sha256 \".*\"/sha256 \"$SHA256_INTEL\"/" doke.rb
 
           # 提交并推送更改
           git config --global user.name "helsonlin"
@@ -68,3 +74,4 @@ jobs:
           git add doke.rb
           git commit -m "Update doke to ${GITHUB_REF#refs/tags/}"
           git push https://${{ secrets.TOKEN }}@github.com/helson-lin/homebrew-tap.git main
+

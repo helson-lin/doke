@@ -13,6 +13,7 @@
   <a href="#installation">Installation</a> •
   <a href="#usage">Usage</a> •
   <a href="#examples">Examples</a> •
+  <a href="#advanced-features">Advanced Features</a> •
   <a href="#contributing">Contributing</a>
 </p>
 
@@ -22,10 +23,14 @@
 
 - **🔧 Container Configuration Conversion**: Convert running Docker container configurations to `docker run` commands
 - **📝 Docker Compose Generation**: Automatically generate Docker Compose YAML configuration files
+- **🔍 Real-time Container Monitoring**: Real-time monitoring of container status, resource usage, and log output
+- **🧹 Resource Cleanup**: Automatically clean up unused Docker resources to free up system space
 - **🌐 Registry Mirror Configuration**: Automatically configure Docker registry mirrors to improve pull speeds
 - **🔄 Version Management**: Support for version viewing and updates
 - **💻 Cross-platform Support**: Support for Linux and macOS systems
 - **⚡ Fast and Efficient**: Lightweight command-line tool with fast execution
+
+[![asciicast](https://asciinema.org/a/6N8kSJONyoUnO2R4Sn6gUeQG2.svg)](https://asciinema.org/a/6N8kSJONyoUnO2R4Sn6gUeQG2)
 
 ## 📦 Installation
 
@@ -71,7 +76,7 @@ doke version
 
 # View help information
 doke --help
-doke command --help
+doke <command> --help
 ```
 
 ### Container Configuration Conversion
@@ -88,11 +93,50 @@ doke command <container_id> -j
 doke c <container_id> --json
 ```
 
+### Real-time Container Monitoring
+
+```bash
+# Monitor container status in real-time
+doke inspect <container_id>
+
+# Monitoring includes:
+# - Container basic information (name, ID, image, status)
+# - Real-time resource usage (CPU, memory, network)
+# - Real-time log output
+# - Port mappings and volume mounts
+```
+
+### Resource Cleanup
+
+```bash
+# Clean up unused Docker resources
+doke clear
+
+# Clean up all unused images (including tagged images)
+doke clear --all
+
+# Force cleanup, skip confirmation prompts
+doke clear --force
+
+# Show detailed system information
+doke clear --info
+```
+
 ### Registry Mirror Configuration
 
 ```bash
 # Automatically configure Docker registry mirrors
 doke proxy
+```
+
+### Language Settings
+
+```bash
+# Switch to Chinese
+doke lang zh
+
+# Switch to English
+doke lang en
 ```
 
 ## 📋 Examples
@@ -121,7 +165,60 @@ doke command abc123def456 -j
 # Docker Compose configuration successfully written to file: my-container.yml
 ```
 
-### 3. Configure Registry Mirrors
+### 3. Real-time Container Monitoring
+
+```bash
+# Start monitoring container
+doke inspect my-container
+
+# Example output:
+# 📦 Container name: my-container
+# 🏷️  Container ID: abc123def456
+# 🖼️  Image: nginx:latest
+# 📍 Status: running
+# ⏰ Uptime: 2h30m15s
+# 
+# 🌐 Port mappings:
+#    8080 -> 80/tcp
+# 
+# 💾 Volume mounts:
+#    /host/data -> /var/www/html (bind)
+# 
+# 🔍 Starting real-time container monitoring...
+# 💡 Press Ctrl+C to exit monitoring
+# 📊 CPU: 15.2% | 💾 Memory: 128.5MB/1024.0MB (12.5%) | 🌐 Network: ↓2.1MB ↑0.8MB
+```
+
+### 4. Clean Up Unused Resources
+
+```bash
+# Clean up system resources
+doke clear
+
+# Example output:
+# 📊 Current Docker resource usage:
+#    📦 Containers: 15 (Running: 3, Stopped: 12)
+#    🖼️  Images: 25 (Dangling: 8) Total size: 3.2GB
+#    🌐 Networks: 8 (Custom: 3)
+#    💾 Volumes: 12
+# 
+# 🗑️  Resources to be cleaned:
+#    ✅ Clean stopped containers
+#    ✅ Clean dangling images
+#    ✅ Clean unused networks
+#    ✅ Clean unused volumes
+# 
+# Confirm cleanup operation? (y/n): y
+# 
+# 🧹 Cleanup results:
+# 📦 Containers: 12
+# 🖼️  Images: 8
+# 🌐 Networks: 2
+# 💾 Volumes: 3
+# 💽 Space reclaimed: 1.8 GB
+```
+
+### 5. Configure Registry Mirrors
 
 ```bash
 # Configure Docker registry mirrors
@@ -138,6 +235,34 @@ doke proxy
 # 🎉 Docker registry mirror configuration complete!
 ```
 
+## 🔧 Advanced Features
+
+### Real-time Container Monitoring
+
+The `doke inspect` command provides powerful real-time container monitoring capabilities:
+
+- **📊 Real-time Resource Monitoring**: Updates CPU, memory, and network usage every 2 seconds
+- **📜 Real-time Log Streaming**: Displays the latest log output from containers
+- **📋 Detailed Information Display**: Container basic info, port mappings, volume mounts, etc.
+- **🔄 Continuous Monitoring**: Monitors continuously until manually stopped (Ctrl+C)
+
+### Intelligent Resource Cleanup
+
+The `doke clear` command provides intelligent Docker resource cleanup:
+
+- **🔍 Resource Analysis**: Automatically analyzes current system resource usage
+- **🎯 Precise Cleanup**: Only cleans up truly unused resources
+- **📊 Cleanup Statistics**: Shows detailed cleanup results and reclaimed space
+- **⚡ Safe Cleanup**: Provides confirmation mechanism to avoid deleting important resources
+
+### Multi-language Support
+
+Doke supports bilingual interface in Chinese and English:
+
+- **🌐 Auto Detection**: Automatically selects interface language based on system language
+- **🔄 Flexible Switching**: Use `doke lang` command to switch languages anytime
+- **📝 Complete Translation**: All features and messages have complete Chinese and English translations
+
 ## 🔧 Configuration
 
 ### Supported Registry Mirrors
@@ -150,6 +275,12 @@ Doke automatically configures the following registry mirrors:
 
 - **macOS (OrbStack)**: `~/.orbstack/config/docker.json`
 - **Linux**: `/etc/docker/daemon.json`
+
+### Language Configuration
+
+Doke supports the following languages:
+- **Chinese**: `zh` (default)
+- **English**: `en`
 
 ## 🛠️ Development
 
@@ -179,6 +310,13 @@ go test ./cmd
 ```
 
 ## 📝 Changelog
+
+### v0.0.2 (Planned)
+- 🔍 Added real-time container monitoring
+- 🧹 Added resource cleanup functionality
+- 🌐 Added multi-language support
+- 📊 Improved resource usage statistics display
+- 🐛 Fixed known issues
 
 ### v0.0.1
 - ✨ Initial release
